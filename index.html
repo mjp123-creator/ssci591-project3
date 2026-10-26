@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LA Metro Rail Stations | Jiapei Mei</title>
+  <script type="module" src="https://js.arcgis.com/5.1/"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 Arial, sans-serif; color: #20252b; background: #fff; }
+    header { padding: 18px 24px 12px; max-width: 1100px; }
+    h1 { font-size: 26px; margin: 0 0 6px; }
+    p { margin: 6px 0; }
+    a { color: #175b87; }
+    .note { font-size: 14px; color: #555; }
+    #status { padding: 8px 24px; margin: 0; background: #edf3f7; font-size: 14px; }
+    arcgis-map { display: block; width: 100%; height: 75vh; min-height: 440px; }
+    arcgis-legend { max-height: 260px; width: 220px; overflow: auto; }
+    footer { padding: 10px 24px; font-size: 13px; }
+    @media (max-width: 600px) {
+      header { padding: 14px; } h1 { font-size: 22px; }
+      #status, footer { padding-left: 14px; padding-right: 14px; }
+      arcgis-legend { width: 155px; max-height: 180px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>LA Metro Rail Stations</h1>
+    <p>About this map: Explore Los Angeles rail stations and click a point to see its station name and line. The stations load directly from the public <a href="https://services5.arcgis.com/7nsPwEMP38bSkCjy/arcgis/rest/services/RAIL_BRT/FeatureServer/0">LA GeoHub rail station service</a> each time the page opens. I adapted Esri's Intro to FeatureLayer sample by changing the location, basemap, symbols, title, and popup fields. The legend explains the line colors, and the Home button returns to the starting view.</p>
+    <p class="note">Course demonstration, not a trip planner. The source retains historical line names and was last edited in 2017; live access does not guarantee current transit information.</p>
+  </header>
+  <p id="status" role="status" aria-live="polite">Loading the map and public station service...</p>
+  <arcgis-map basemap="gray-vector" center="-118.25,34.03" zoom="10">
+    <arcgis-zoom slot="top-left"></arcgis-zoom>
+    <arcgis-home slot="top-left"></arcgis-home>
+    <arcgis-legend slot="bottom-left"></arcgis-legend>
+    <arcgis-popup slot="popup"></arcgis-popup>
+  </arcgis-map>
+  <footer>Jiapei Mei · SSCI 591 Project 3 · <a href="https://developers.arcgis.com/javascript/latest/sample-code/intro-featurelayer/">Starting sample</a> · <a href="https://github.com/mjp123-creator/ssci591-project3">Code and credits</a></footer>
+  <script type="module">
+    // Adapted from Esri's Intro to FeatureLayer sample. See README for credits.
+    const status = document.getElementById('status');
+    const timeout = setTimeout(() => {
+      status.textContent = 'Loading is taking longer than expected. Check your connection and reload if necessary.';
+    }, 20000);
+    try {
+      const FeatureLayer = await $arcgis.import('@arcgis/core/layers/FeatureLayer.js');
+      const viewElement = document.querySelector('arcgis-map');
+      await viewElement.viewOnReady();
+      // These are the source's historical LINE values, not modern Metro names.
+      const lines = [
+        ['Gold', '#b17b00'], ['Blue', '#176bb4'], ['EXPO', '#008a91'],
+        ['Green', '#40813b'], ['Red', '#d33436'], ['Purple', '#8055a2'],
+        ['Red/Purple', '#883e65'], ['Blue/EXPO', '#245e76']
+      ];
+      const marker = color => ({
+        type: 'simple-marker', style: 'circle', size: 9,
+        color, outline: { color: '#ffffff', width: 1 }
+      });
+      const stations = new FeatureLayer({
+        url: 'https://services5.arcgis.com/7nsPwEMP38bSkCjy/arcgis/rest/services/RAIL_BRT/FeatureServer/0',
+        title: 'Rail lines (source labels)',
+        outFields: ['STATION', 'LINE'],
+        renderer: {
+          type: 'unique-value', field: 'LINE',
+          defaultSymbol: marker('#555555'), defaultLabel: 'Other / unspecified',
+          uniqueValueInfos: lines.map(([value, color]) => ({ value, label: value, symbol: marker(color) }))
+        },
+        popupTemplate: {
+          title: '{STATION}',
+          content: [{ type: 'fields', fieldInfos: [
+            { fieldName: 'STATION', label: 'Station name' },
+            { fieldName: 'LINE', label: 'Line (source label)' }
+          ] }]
+        }
+      });
+      viewElement.map.add(stations);
+      await viewElement.whenLayerView(stations);
+      const count = await stations.queryFeatureCount();
+      clearTimeout(timeout);
+      status.textContent = `${count} stations loaded from the live service. Click a station for details; use Home to reset the view.`;
+    } catch (error) {
+      clearTimeout(timeout);
+      status.textContent = 'The map or station service could not load. Check your internet connection and try reloading.';
+      console.error('Map initialization failed:', error);
+    }
+  </script>
+</body>
+</html>
