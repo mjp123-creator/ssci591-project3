@@ -10,7 +10,7 @@ This map displays Los Angeles rail stations, colored by the line labels in the s
 
 ## Starting sample (name and link)
 
-The starting point is Esri's [Intro to FeatureLayer](https://developers.arcgis.com/javascript/latest/sample-code/intro-featurelayer/) sample. The app retains its map component, asynchronous SDK import, FeatureLayer creation, and map.add workflow. It loads ArcGIS Maps SDK for JavaScript 5.1 from Esri's CDN. All application HTML, CSS, and JavaScript are in index.html; no build tool, package installation, or API key is required.
+The starting point is Esri's [Intro to FeatureLayer](https://developers.arcgis.com/javascript/latest/sample-code/intro-featurelayer/) sample. The app retains its map component, asynchronous SDK import, FeatureLayer creation, and map.add workflow. It loads ArcGIS Maps SDK for JavaScript 5.1 from Esri's CDN. The page structure is in index.html, styling is in style.css, and map logic is in app.js; no build tool, package installation, or API key is required.
 
 ## What I changed
 
